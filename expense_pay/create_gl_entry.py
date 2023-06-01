@@ -18,6 +18,7 @@ def create_gl_entries(doc, method):
         "credit_in_account_currency": doc.paid_amount,
         "against": ", ".join([d.account_paid_to for d in doc.expenses]),
         "voucher_type": _("Expenses Entry"),
+        "cost_center": doc.default_cost_center,
         "voucher_no": doc.name,
         "is_opening": "No",
         "is_advance": "No",
@@ -38,6 +39,7 @@ def create_gl_entries(doc, method):
             "debit_in_account_currency": expense.amount,
             "credit_in_account_currency": 0,
             "against": doc.account_paid_from,
+            "cost_center": expense.cost_center, # Added this line
             "voucher_type": _("Expenses Entry"),
             "voucher_no": doc.name,
             "is_opening": "No",
@@ -72,6 +74,7 @@ def cancel_gl_entries(doc, method):
         "debit": doc.paid_amount,
         "credit": 0,
         "debit_in_account_currency": doc.paid_amount,
+        "cost_center": doc.default_cost_center,
         "credit_in_account_currency": 0,
         "against": ", ".join([d.account_paid_to for d in doc.expenses]),
         "voucher_type": _("Expenses Entry"),
@@ -93,6 +96,7 @@ def cancel_gl_entries(doc, method):
             "cost_center": expense.cost_center,
             "debit": 0,
             "credit": expense.amount,
+            "cost_center": expense.cost_center, # Added this line
             "debit_in_account_currency": 0,
             "credit_in_account_currency": expense.amount,
             "against": doc.account_paid_from,
