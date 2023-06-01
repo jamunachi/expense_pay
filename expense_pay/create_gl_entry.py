@@ -1,7 +1,6 @@
 import frappe
 from frappe import _
-from frappe.model.document import Document
-from frappe.utils import flt
+from frappe.utils import  now
 
 def create_gl_entries(doc, method):
     gl_entries = []
@@ -83,7 +82,8 @@ def cancel_gl_entries(doc, method):
         "is_advance": "No",
         "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
         "company": doc.company,
-        "is_cancelled": 1
+        "is_cancelled": 1,
+        "to_rename": 1
     }
     gl_entries.append(gl_entry)
 
@@ -106,7 +106,8 @@ def cancel_gl_entries(doc, method):
             "is_advance": "No",
             "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
             "company": doc.company,
-            "is_cancelled": 1
+            "is_cancelled": 1,
+            "to_rename": 1
         }
         gl_entries.append(gl_entry)
 
@@ -116,3 +117,16 @@ def cancel_gl_entries(doc, method):
         gle.flags.ignore_permissions = 1
         gle.flags.notify_update = False
         gle.submit()
+        voucher_type = gle.voucher_type
+        voucher_no = gle.voucher_no
+        def set_as_cancel(voucher_type, voucher_no):
+            """
+            Set is_cancelled=1 in all original gl entries for the voucher
+            """
+            frappe.db.sql(
+                """UPDATE `tabGL Entry` SET is_cancelled = 1,
+                modified=%s, modified_by=%s
+                where voucher_type=%s and voucher_no=%s and is_cancelled = 0""",
+                (now(), frappe.session.user, voucher_type, voucher_no),
+            )
+        set_as_cancel(voucher_type, voucher_no)
