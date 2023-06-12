@@ -22,7 +22,8 @@ def create_gl_entries(doc, method):
         "is_opening": "No",
         "is_advance": "No",
         "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
-        "company": doc.company
+        "company": doc.company,
+        "remark": doc.remarks
     }
     gl_entries.append(gl_entry)
 
@@ -44,7 +45,8 @@ def create_gl_entries(doc, method):
             "is_opening": "No",
             "is_advance": "No",
             "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
-            "company": doc.company
+            "company": doc.company,
+            "remark": doc.remarks
         }
         gl_entries.append(gl_entry)
 
@@ -83,7 +85,8 @@ def cancel_gl_entries(doc, method):
         "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
         "company": doc.company,
         "is_cancelled": 1,
-        "to_rename": 1
+        "to_rename": 1,
+        "remark": "On Cancelled " + doc.remarks
     }
     gl_entries.append(gl_entry)
 
@@ -107,7 +110,8 @@ def cancel_gl_entries(doc, method):
             "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
             "company": doc.company,
             "is_cancelled": 1,
-            "to_rename": 1
+            "to_rename": 1,
+            "remark": "On Cancelled " + doc.remarks
         }
         gl_entries.append(gl_entry)
 

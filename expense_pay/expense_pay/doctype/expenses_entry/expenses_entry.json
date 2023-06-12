@@ -23,7 +23,8 @@
   "section_break_hbzzj",
   "expenses",
   "amended_from",
-  "company"
+  "company",
+  "remarks"
  ],
  "fields": [
   {
@@ -114,12 +115,17 @@
    "fieldtype": "Link",
    "label": "Default Cost Center",
    "options": "Cost Center"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-05-25 18:32:48.217374",
+ "modified": "2023-06-12 14:58:29.919371",
  "modified_by": "Administrator",
  "module": "Expense Pay",
  "name": "Expenses Entry",
