@@ -21,7 +21,7 @@ frappe.ui.form.on('Expenses Entry', {
         }
     },
     before_save: function (frm) {
-        if (frm.doc.paid_amount < frm.doc.total_debit) {
+        if (frm.doc.paid_amount != frm.doc.total_debit) {
             frappe.throw("Total Debit amount must be equal to or less than the Paid Amount");
         }
     },
