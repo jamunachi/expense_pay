@@ -24,10 +24,23 @@ frappe.ui.form.on("Expenses Entry", {
       );
     }
   },
+  onload: function (frm) {
+    frm.fields_dict["account_paid_from"].get_query = function (doc) {
+      return {
+        filters: {
+          is_group: 0,
+        },
+      };
+    };
+  },
   before_save: function (frm) {
     console.log("paid amount", frm.doc.paid_amount);
     console.log("total debit", frm.doc.total_debit);
-    if (frm.doc.paid_amount !== frm.doc.total_debit) {
+
+    let rounded_paid_amount = parseFloat(frm.doc.paid_amount.toFixed(2));
+    let rounded_total_debit = parseFloat(frm.doc.total_debit.toFixed(2));
+
+    if (rounded_paid_amount !== rounded_total_debit) {
       frappe.throw(
         "Total Debit amount must be equal to or less than the Paid Amount"
       );
@@ -36,6 +49,16 @@ frappe.ui.form.on("Expenses Entry", {
 });
 
 frappe.ui.form.on("Expenses", {
+  onload: function (frm) {
+    frm.fields_dict["expenses"].grid.get_field("account_paid_to").get_query =
+      function (doc, cdt, cdn) {
+        return {
+          filters: {
+            is_group: 0,
+          },
+        };
+      };
+  },
   amount: function (frm, cdt, cdn) {
     let d = locals[cdt][cdn];
     // sum all the amounts from the expenses table and set it to the total_debit field
