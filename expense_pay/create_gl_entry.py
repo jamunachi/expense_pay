@@ -10,7 +10,7 @@ def create_gl_entries(doc, method):
         "doctype": "GL Entry",
         "posting_date": doc.posting_date,
         "account": doc.account_paid_from,
-        "cost_center": doc.default_cost_center,
+        "cost_center": (doc.default_cost_center if doc.default_cost_center else ""),
         "debit": 0,
         "credit": doc.paid_amount,
         "debit_in_account_currency": 0,
@@ -33,20 +33,20 @@ def create_gl_entries(doc, method):
             "doctype": "GL Entry",
             "posting_date": doc.posting_date,
             "account": expense.account_paid_to,
-            "cost_center": expense.cost_center,
+            "cost_center": (expense.cost_center if expense.cost_center else doc.default_cost_center),
+            "project": (expense.project if expense.project else ""),
             "debit": expense.amount,
             "credit": 0,
             "debit_in_account_currency": expense.amount,
             "credit_in_account_currency": 0,
             "against": doc.account_paid_from,
-            "cost_center": expense.cost_center, # Added this line
             "voucher_type": _("Expenses Entry"),
             "voucher_no": doc.name,
             "is_opening": "No",
             "is_advance": "No",
             "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
             "company": doc.company,
-            "remarks": expense.remarks
+            "remarks": (expense.remarks if expense.remarks else "")
         }
         gl_entries.append(gl_entry)
 
@@ -75,7 +75,7 @@ def cancel_gl_entries(doc, method):
         "debit": doc.paid_amount,
         "credit": 0,
         "debit_in_account_currency": doc.paid_amount,
-        "cost_center": doc.default_cost_center,
+        "cost_center": (doc.default_cost_center if doc.default_cost_center else ""),
         "credit_in_account_currency": 0,
         "against": ", ".join([d.account_paid_to for d in doc.expenses]),
         "voucher_type": _("Expenses Entry"),
@@ -86,7 +86,7 @@ def cancel_gl_entries(doc, method):
         "company": doc.company,
         "is_cancelled": 1,
         "to_rename": 1,
-        "remarks": "On Cancelled " + doc.remarks
+        "remarks": "On Cancelled " + (doc.remarks if doc.remarks else "")
     }
     gl_entries.append(gl_entry)
 
@@ -96,10 +96,10 @@ def cancel_gl_entries(doc, method):
             "doctype": "GL Entry",
             "posting_date": doc.posting_date,
             "account": expense.account_paid_to,
-            "cost_center": expense.cost_center,
             "debit": 0,
             "credit": expense.amount,
-            "cost_center": expense.cost_center, # Added this line
+            "cost_center": (expense.cost_center if expense.cost_center else doc.default_cost_center),
+            "project": (expense.project if expense.project else ""),
             "debit_in_account_currency": 0,
             "credit_in_account_currency": expense.amount,
             "against": doc.account_paid_from,
@@ -111,7 +111,7 @@ def cancel_gl_entries(doc, method):
             "company": doc.company,
             "is_cancelled": 1,
             "to_rename": 1,
-            "remarks": "On Cancelled " + expense.remarks
+            "remarks": "On Cancelled " + (expense.remarks if expense.remarks else "")
         }
         gl_entries.append(gl_entry)
 
