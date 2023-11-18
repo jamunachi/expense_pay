@@ -49,6 +49,20 @@ frappe.ui.form.on("Expenses Entry", {
 });
 
 frappe.ui.form.on("Expenses", {
+  expenses_remove: function (frm, cdt, cdn) {
+    let totalAmountPromise = new Promise(function (resolve, reject) {
+      let totalAmount = 0;
+      frm.doc.expenses.forEach(function (d) {
+        totalAmount += d.amount;
+      });
+
+      resolve(totalAmount);
+    });
+
+    totalAmountPromise.then(function (totalAmount) {
+      frm.set_value("total_debit", totalAmount);
+    });
+  },
   onload: function (frm) {
     frm.fields_dict["expenses"].grid.get_field("account_paid_to").get_query =
       function (doc, cdt, cdn) {
