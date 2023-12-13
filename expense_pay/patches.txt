@@ -1,0 +1,4 @@
+[post_model_sync]
+expense_pay.expense_pay.doctype.expenses_entry.patches.fiscal_year
+
+[pre_model_sync]
