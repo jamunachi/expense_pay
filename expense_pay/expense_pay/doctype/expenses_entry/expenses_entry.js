@@ -154,6 +154,41 @@ frappe.ui.form.on("Expenses Entry", {
             });
         }
     },
+    currency_exchange_link: function (frm) {
+        if (frm.doc.currency_exchange_link) {
+            frappe.call({
+                method: "frappe.client.get",
+                args: {
+                    doctype: "Currency Exchange",
+                    name: frm.doc.currency_exchange_link,
+                },
+                callback: function (r) {
+                    if (r.message) {
+                        var exchange = r.message;
+                        // Update fields in your doctype
+                        frappe.model.set_value(
+                            frm.doctype,
+                            frm.docname,
+                            "exchange_rate",
+                            exchange.exchange_rate
+                        );
+                        frappe.model.set_value(
+                            frm.doctype,
+                            frm.docname,
+                            "exchange_rate_date",
+                            exchange.date
+                        );
+                        frappe.model.set_value(
+                            frm.doctype,
+                            frm.docname,
+                            "account_currency_from",
+                            exchange.from_currency
+                        );
+                    }
+                },
+            });
+        }
+    },
 });
 
 frappe.ui.form.on("Expenses", {
@@ -312,6 +347,42 @@ frappe.ui.form.on("Expenses", {
                             cdn,
                             "currency_exchange_link",
                             latest_exchange.name
+                        );
+                    }
+                },
+            });
+        }
+    },
+    currency_exchange_link: function (frm, cdt, cdn) {
+        var row = locals[cdt][cdn];
+        if (row.currency_exchange_link) {
+            frappe.call({
+                method: "frappe.client.get",
+                args: {
+                    doctype: "Currency Exchange",
+                    name: row.currency_exchange_link,
+                },
+                callback: function (r) {
+                    if (r.message) {
+                        var exchange = r.message;
+                        // Update fields in your doctype
+                        frappe.model.set_value(
+                            cdt,
+                            cdn,
+                            "exchange_rate",
+                            exchange.exchange_rate
+                        );
+                        frappe.model.set_value(
+                            cdt,
+                            cdn,
+                            "exchange_rate_date",
+                            exchange.date
+                        );
+                        frappe.model.set_value(
+                            cdt,
+                            cdn,
+                            "account_currency",
+                            exchange.from_currency
                         );
                     }
                 },
