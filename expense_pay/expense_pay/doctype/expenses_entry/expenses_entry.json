@@ -18,12 +18,18 @@
   "account_paid_from",
   "account_currency_from",
   "account_balance_from",
+  "multi_currency",
   "column_break_7czmc",
   "paid_amount",
+  "paid_amount_in_account_currency",
+  "exchange_rate",
   "section_break_hbzzj",
   "expenses",
+  "section_break_dvzq6",
   "amended_from",
   "company",
+  "column_break_l7wep",
+  "total_debit",
   "remarks"
  ],
  "fields": [
@@ -83,7 +89,9 @@
   {
    "fieldname": "paid_amount",
    "fieldtype": "Currency",
-   "label": "Paid Amount"
+   "label": "Paid Amount",
+   "options": "Company:company:default_currency",
+   "read_only_depends_on": "eval: doc.multi_currency === 1;"
   },
   {
    "fieldname": "section_break_hbzzj",
@@ -122,12 +130,46 @@
    "fieldname": "remarks",
    "fieldtype": "Small Text",
    "label": "Remarks"
+  },
+  {
+   "default": "0",
+   "fieldname": "multi_currency",
+   "fieldtype": "Check",
+   "label": "Multi Currency"
+  },
+  {
+   "depends_on": "eval: doc.multi_currency == 1;",
+   "fieldname": "exchange_rate",
+   "fieldtype": "Currency",
+   "label": "Exchange Rate",
+   "options": "Currency"
+  },
+  {
+   "depends_on": "eval: doc.multi_currency === 1;",
+   "fieldname": "paid_amount_in_account_currency",
+   "fieldtype": "Currency",
+   "label": "Paid Amount In Account Currency",
+   "options": "account_currency"
+  },
+  {
+   "fieldname": "section_break_dvzq6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_l7wep",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_debit",
+   "fieldtype": "Currency",
+   "label": "Total Debit",
+   "options": "Company:company:default_currency"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-18 10:06:05.086617",
+ "modified": "2024-01-03 16:41:14.580308",
  "modified_by": "Administrator",
  "module": "Expense Pay",
  "name": "Expenses Entry",
