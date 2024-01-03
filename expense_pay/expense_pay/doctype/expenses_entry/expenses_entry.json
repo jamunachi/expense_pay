@@ -11,6 +11,7 @@
   "type_of_payment",
   "naming_series",
   "payment_type",
+  "multi_currency",
   "column_break_tefpp",
   "posting_date",
   "default_cost_center",
@@ -18,11 +19,12 @@
   "account_paid_from",
   "account_currency_from",
   "account_balance_from",
-  "multi_currency",
   "column_break_7czmc",
   "paid_amount",
   "paid_amount_in_account_currency",
   "exchange_rate",
+  "exchange_rate_date",
+  "currency_exchange_link",
   "section_break_hbzzj",
   "expenses",
   "section_break_dvzq6",
@@ -142,7 +144,8 @@
    "fieldname": "exchange_rate",
    "fieldtype": "Currency",
    "label": "Exchange Rate",
-   "options": "Currency"
+   "options": "Currency",
+   "read_only": 1
   },
   {
    "depends_on": "eval: doc.multi_currency === 1;",
@@ -164,12 +167,26 @@
    "fieldtype": "Currency",
    "label": "Total Debit",
    "options": "Company:company:default_currency"
+  },
+  {
+   "depends_on": "eval: doc.multi_currency == 1;",
+   "fieldname": "exchange_rate_date",
+   "fieldtype": "Date",
+   "label": "Exchange Rate Date",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval: doc.multi_currency == 1;",
+   "fieldname": "currency_exchange_link",
+   "fieldtype": "Link",
+   "label": "Currency Exchange Link",
+   "options": "Currency Exchange"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-03 16:41:14.580308",
+ "modified": "2024-01-03 23:11:26.198314",
  "modified_by": "Administrator",
  "module": "Expense Pay",
  "name": "Expenses Entry",

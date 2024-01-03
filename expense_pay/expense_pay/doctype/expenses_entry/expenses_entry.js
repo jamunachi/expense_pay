@@ -53,17 +53,6 @@ frappe.ui.form.on("Expenses Entry", {
                 "paid_amount_in_account_currency",
                 frm.doc.multi_currency
             );
-            var fields = [
-                "account_paid_to",
-                "amount",
-                "amount_in_account_currency",
-                "exchange_rate",
-                "remarks",
-                "cost_center",
-                "project",
-            ];
-            var grid = frm.get_field("expenses").grid;
-            if (grid) grid.set_column_disp(fields, frm.doc.multi_currency);
 
             var df = frappe.meta.get_docfield(
                 "Expenses",
@@ -122,6 +111,47 @@ frappe.ui.form.on("Expenses Entry", {
                 frm.doc.paid_amount_in_account_currency * frm.doc.exchange_rate
             );
             // frm.refresh_field("expenses");
+        }
+    },
+    account_currency_from: function (frm) {
+        if (frm.doc.account_currency_from) {
+            // Fetch the latest exchange rate
+            frappe.call({
+                method: "frappe.client.get_list",
+                args: {
+                    doctype: "Currency Exchange",
+                    filters: {
+                        from_currency: frm.doc.account_currency_from,
+                    },
+                    fields: ["name", "exchange_rate", "date"],
+                    order_by: "date desc",
+                    limit_page_length: 1,
+                },
+                callback: function (r) {
+                    if (r.message && r.message.length > 0) {
+                        var latest_exchange = r.message[0];
+                        // Update fields in your doctype
+                        frappe.model.set_value(
+                            frm.doctype,
+                            frm.docname,
+                            "exchange_rate",
+                            latest_exchange.exchange_rate
+                        );
+                        frappe.model.set_value(
+                            frm.doctype,
+                            frm.docname,
+                            "exchange_rate_date",
+                            latest_exchange.date
+                        );
+                        frappe.model.set_value(
+                            frm.doctype,
+                            frm.docname,
+                            "currency_exchange_link",
+                            latest_exchange.name
+                        );
+                    }
+                },
+            });
         }
     },
 });
@@ -189,6 +219,20 @@ frappe.ui.form.on("Expenses", {
             "exchange_rate",
             frm.doc.exchange_rate
         );
+
+        frappe.model.set_value(
+            cdt,
+            cdn,
+            "exchange_rate_date",
+            frm.doc.exchange_rate_date
+        );
+
+        frappe.model.set_value(
+            cdt,
+            cdn,
+            "currency_exchange_link",
+            frm.doc.currency_exchange_link
+        );
     },
     form_render: function (frm, cdt, cdn) {
         // set the exchange_rate value to the exchange_rate field
@@ -210,89 +254,68 @@ frappe.ui.form.on("Expenses", {
                 frm.doc.exchange_rate
             );
         }
+        if (row.exchange_rate_date.length === 0 && frm.doc.multi_currency) {
+            frappe.model.set_value(
+                cdt,
+                cdn,
+                "exchange_rate_date",
+                frm.doc.exchange_rate_date
+            );
+        }
+        if (row.currency_exchange_link.length === 0 && frm.doc.multi_currency) {
+            frappe.model.set_value(
+                cdt,
+                cdn,
+                "currency_exchange_link",
+                frm.doc.currency_exchange_link
+            );
+        }
+
         frm.fields_dict.expenses.grid.update_docfield_property(
             "amount",
             "reqd",
             1
         );
     },
+    account_currency: function (frm, cdt, cdn) {
+        var row = locals[cdt][cdn];
+        if (frm.doc.multi_currency) {
+            frappe.call({
+                method: "frappe.client.get_list",
+                args: {
+                    doctype: "Currency Exchange",
+                    filters: {
+                        from_currency: row.account_currency,
+                    },
+                    fields: ["name", "exchange_rate", "date"],
+                    order_by: "date desc",
+                    limit_page_length: 1,
+                },
+                callback: function (r) {
+                    if (r.message && r.message.length > 0) {
+                        var latest_exchange = r.message[0];
+                        // Update fields in your doctype
+                        frappe.model.set_value(
+                            cdt,
+                            cdn,
+                            "exchange_rate",
+                            latest_exchange.exchange_rate
+                        );
+                        frappe.model.set_value(
+                            cdt,
+                            cdn,
+                            "exchange_rate_date",
+                            latest_exchange.date
+                        );
+                        frappe.model.set_value(
+                            cdt,
+                            cdn,
+                            "currency_exchange_link",
+                            latest_exchange.name
+                        );
+                    }
+                },
+            });
+        }
+    },
 });
-
-function set_exchange_rate(frm, cdt, cdn) {
-    var company_currency = frappe.get_doc(
-        ":Company",
-        frm.doc.company
-    ).default_currency;
-    var row = locals[cdt][cdn];
-
-    if (row.account_currency == company_currency || !frm.doc.multi_currency) {
-        row.exchange_rate = 1;
-        erpnext.journal_entry.set_debit_credit_in_company_currency(
-            frm,
-            cdt,
-            cdn
-        );
-    } else if (
-        !row.exchange_rate ||
-        row.exchange_rate == 1 ||
-        row.account_type == "Bank"
-    ) {
-        frappe.call({
-            method: "erpnext.accounts.doctype.journal_entry.journal_entry.get_exchange_rate",
-            args: {
-                posting_date: frm.doc.posting_date,
-                account: row.account,
-                account_currency: row.account_currency,
-                company: frm.doc.company,
-                reference_type: cstr(row.reference_type),
-                reference_name: cstr(row.reference_name),
-                debit: flt(row.debit_in_account_currency),
-                credit: flt(row.credit_in_account_currency),
-                exchange_rate: row.exchange_rate,
-            },
-            callback: function (r) {
-                if (r.message) {
-                    row.exchange_rate = r.message;
-                    erpnext.journal_entry.set_debit_credit_in_company_currency(
-                        frm,
-                        cdt,
-                        cdn
-                    );
-                }
-            },
-        });
-    } else {
-        erpnext.journal_entry.set_debit_credit_in_company_currency(
-            frm,
-            cdt,
-            cdn
-        );
-    }
-    refresh_field("exchange_rate", cdn, "accounts");
-}
-
-function set_debit_credit_in_company_currency(frm, cdt, cdn) {
-    var row = locals[cdt][cdn];
-
-    frappe.model.set_value(
-        cdt,
-        cdn,
-        "debit",
-        flt(
-            flt(row.debit_in_account_currency) * row.exchange_rate,
-            precision("debit", row)
-        )
-    );
-
-    frappe.model.set_value(
-        cdt,
-        cdn,
-        "credit",
-        flt(
-            flt(row.credit_in_account_currency) * row.exchange_rate,
-            precision("credit", row)
-        )
-    );
-
-    cur_frm.cscript.update_totals(frm.doc);
-}
