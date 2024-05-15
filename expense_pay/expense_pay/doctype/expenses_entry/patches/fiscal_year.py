@@ -7,12 +7,12 @@ logger = frappe.logger("fiscal_year_patch", allow_site=True, file_count=1)
 def execute():
     # Fetch all GL Entry documents that have a voucher_no containing "ACC-JV"
     try:
-        gl_entries = frappe.get_all("GL Entry", filters={"voucher_type": "Expenses Entry", "voucher_no": ("like", "ACC-PAY-%")}, fields=["name", "creation", "fiscal_year"])
+        gl_entries = frappe.get_all("GL Entry", filters={"voucher_type": "Expenses Entry", "voucher_no": ("like", "ACC-PAY-%")}, fields=["name", "posting_date", "fiscal_year"])
 
         for entry in gl_entries:
             # Extract the year from the creation date
             try:
-                creation_year = getdate(entry.creation).year
+                creation_year = getdate(entry.posting_date).year
 
                 # Check if the fiscal year matches the creation year
                 if str(creation_year) != entry.fiscal_year:
