@@ -1,6 +1,10 @@
 import frappe
 from frappe import _
-from frappe.utils import  now
+from frappe.utils import  now, logger
+from erpnext.accounts.utils import _delete_gl_entries
+
+logger.set_log_level("DEBUG")
+logger = frappe.logger("expensepay", file_count=1, allow_site=True)
 
 def create_gl_entries(doc, method):
     gl_entries = []
@@ -134,3 +138,20 @@ def cancel_gl_entries(doc, method):
                 (now(), frappe.session.user, voucher_type, voucher_no),
             )
         set_as_cancel(voucher_type, voucher_no)
+
+
+from frappe.utils import now
+
+def delete_gl_entries(doc, method):
+    """
+    Cancels and deletes GL Entries linked to the Expenses Entry before deleting the doc.
+    """
+    logger.info(f"Deleting GL Entries related to Expenses Entry {doc.name}")
+    # Find all related GL Entries for this voucher type and number
+    _delete_gl_entries("Expenses Entry", doc.name)
+    
+    doc.ignore_linked_doctypes = ("Gl Entry")
+    
+    logger.info("Ignoring the gl entries")
+    # Optionally log or notify about the deletion
+    frappe.msgprint(_("Cancelled and deleted GL Entries related to Expenses Entry {0}.").format(doc.name), alert=True)

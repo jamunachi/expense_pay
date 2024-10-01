@@ -113,7 +113,8 @@ app_license = "MIT"
 doc_events = {
     "Expenses Entry": {
         "on_submit": "expense_pay.create_gl_entry.create_gl_entries",
-        "on_cancel": "expense_pay.create_gl_entry.cancel_gl_entries"
+        "on_cancel": "expense_pay.create_gl_entry.cancel_gl_entries",
+        "on_trash": "expense_pay.create_gl_entry.delete_gl_entries"
     }
 }
 # Scheduled Tasks
