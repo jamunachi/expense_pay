@@ -1,212 +1,216 @@
 {
- "actions": [],
- "allow_rename": 1,
- "autoname": "naming_series:",
- "creation": "2023-05-25 17:58:40.046202",
- "default_view": "List",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "type_of_payment",
-  "naming_series",
-  "payment_type",
-  "multi_currency",
-  "column_break_tefpp",
-  "posting_date",
-  "default_cost_center",
-  "payment_accounts_section",
-  "account_paid_from",
-  "account_currency_from",
-  "account_balance_from",
-  "column_break_7czmc",
-  "paid_amount",
-  "paid_amount_in_account_currency",
-  "exchange_rate",
-  "exchange_rate_date",
-  "currency_exchange_link",
-  "section_break_hbzzj",
-  "expenses",
-  "section_break_dvzq6",
-  "amended_from",
-  "company",
-  "column_break_l7wep",
-  "total_debit",
-  "remarks"
- ],
- "fields": [
-  {
-   "fieldname": "type_of_payment",
-   "fieldtype": "Section Break",
-   "label": "Type of Payment"
-  },
-  {
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "label": "Series",
-   "options": "ACC-PAY-.YYYY.-"
-  },
-  {
-   "fieldname": "payment_type",
-   "fieldtype": "Select",
-   "label": "Payment Type",
-   "options": "Expenses"
-  },
-  {
-   "fieldname": "column_break_tefpp",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "posting_date",
-   "fieldtype": "Date",
-   "label": "Posting Date"
-  },
-  {
-   "fieldname": "payment_accounts_section",
-   "fieldtype": "Section Break",
-   "label": "Accounts"
-  },
-  {
-   "fieldname": "account_paid_from",
-   "fieldtype": "Link",
-   "label": "Account Paid From",
-   "options": "Account"
-  },
-  {
-   "fieldname": "account_currency_from",
-   "fieldtype": "Link",
-   "label": "Account Currency (From)",
-   "options": "Currency"
-  },
-  {
-   "fieldname": "account_balance_from",
-   "fieldtype": "Currency",
-   "label": "Account Balance (From)",
-   "options": "paid_from_account_currency"
-  },
-  {
-   "fieldname": "column_break_7czmc",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "paid_amount",
-   "fieldtype": "Currency",
-   "label": "Paid Amount",
-   "options": "Company:company:default_currency",
-   "read_only_depends_on": "eval: doc.multi_currency === 1;"
-  },
-  {
-   "fieldname": "section_break_hbzzj",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "expenses",
-   "fieldtype": "Table",
-   "label": "Expenses",
-   "options": "Expenses"
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Expenses Entry",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "company",
-   "fieldtype": "Link",
-   "label": "Company",
-   "options": "Company"
-  },
-  {
-   "fieldname": "default_cost_center",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Default Cost Center",
-   "options": "Cost Center",
-   "reqd": 1
-  },
-  {
-   "fieldname": "remarks",
-   "fieldtype": "Small Text",
-   "label": "Remarks"
-  },
-  {
-   "default": "0",
-   "fieldname": "multi_currency",
-   "fieldtype": "Check",
-   "label": "Multi Currency"
-  },
-  {
-   "depends_on": "eval: doc.multi_currency == 1;",
-   "fieldname": "exchange_rate",
-   "fieldtype": "Currency",
-   "label": "Exchange Rate",
-   "options": "Currency",
-   "read_only": 1
-  },
-  {
-   "depends_on": "eval: doc.multi_currency === 1;",
-   "fieldname": "paid_amount_in_account_currency",
-   "fieldtype": "Currency",
-   "label": "Paid Amount In Account Currency",
-   "options": "account_currency"
-  },
-  {
-   "fieldname": "section_break_dvzq6",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_l7wep",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_debit",
-   "fieldtype": "Currency",
-   "label": "Total Debit",
-   "options": "Company:company:default_currency"
-  },
-  {
-   "depends_on": "eval: doc.multi_currency == 1;",
-   "fieldname": "exchange_rate_date",
-   "fieldtype": "Date",
-   "label": "Exchange Rate Date",
-   "read_only": 1
-  },
-  {
-   "depends_on": "eval: doc.multi_currency == 1;",
-   "fieldname": "currency_exchange_link",
-   "fieldtype": "Link",
-   "label": "Currency Exchange Link",
-   "options": "Currency Exchange"
-  }
- ],
- "index_web_pages_for_search": 1,
- "is_submittable": 1,
- "links": [],
- "modified": "2024-01-03 23:11:26.198314",
- "modified_by": "Administrator",
- "module": "Expense Pay",
- "name": "Expenses Entry",
- "naming_rule": "By \"Naming Series\" field",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  }
- ],
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "naming_series:",
+    "creation": "2023-05-25 17:58:40.046202",
+    "default_view": "List",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "type_of_payment",
+        "naming_series",
+        "payment_type",
+        "multi_currency",
+        "column_break_tefpp",
+        "posting_date",
+        "default_cost_center",
+        "payment_accounts_section",
+        "account_paid_from",
+        "account_currency_from",
+        "account_balance_from",
+        "column_break_7czmc",
+        "paid_amount",
+        "paid_amount_in_account_currency",
+        "exchange_rate",
+        "exchange_rate_date",
+        "currency_exchange_link",
+        "section_break_hbzzj",
+        "expenses",
+        "section_break_dvzq6",
+        "amended_from",
+        "company",
+        "column_break_l7wep",
+        "total_debit",
+        "remarks"
+    ],
+    "fields": [
+        {
+            "fieldname": "type_of_payment",
+            "fieldtype": "Section Break",
+            "label": "Type of Payment"
+        },
+        {
+            "fieldname": "naming_series",
+            "fieldtype": "Select",
+            "label": "Series",
+            "options": "ACC-PAY-.YYYY.-"
+        },
+        {
+            "fieldname": "payment_type",
+            "fieldtype": "Select",
+            "label": "Payment Type",
+            "options": "Expenses"
+        },
+        {
+            "fieldname": "column_break_tefpp",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "posting_date",
+            "fieldtype": "Date",
+            "label": "Posting Date",
+            "default": "Today",
+            "reqd": 1
+        },
+        {
+            "fieldname": "payment_accounts_section",
+            "fieldtype": "Section Break",
+            "label": "Accounts"
+        },
+        {
+            "fieldname": "account_paid_from",
+            "fieldtype": "Link",
+            "label": "Account Paid From",
+            "options": "Account",
+            "reqd": 1
+        },
+        {
+            "fieldname": "account_currency_from",
+            "fieldtype": "Link",
+            "label": "Account Currency (From)",
+            "options": "Currency"
+        },
+        {
+            "fieldname": "account_balance_from",
+            "fieldtype": "Currency",
+            "label": "Account Balance (From)",
+            "options": "paid_from_account_currency"
+        },
+        {
+            "fieldname": "column_break_7czmc",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "paid_amount",
+            "fieldtype": "Currency",
+            "label": "Paid Amount",
+            "options": "Company:company:default_currency",
+            "read_only_depends_on": "eval: doc.multi_currency === 1;",
+            "reqd": 1
+        },
+        {
+            "fieldname": "section_break_hbzzj",
+            "fieldtype": "Section Break"
+        },
+        {
+            "fieldname": "expenses",
+            "fieldtype": "Table",
+            "label": "Expenses",
+            "options": "Expenses"
+        },
+        {
+            "fieldname": "amended_from",
+            "fieldtype": "Link",
+            "label": "Amended From",
+            "no_copy": 1,
+            "options": "Expenses Entry",
+            "print_hide": 1,
+            "read_only": 1
+        },
+        {
+            "fieldname": "company",
+            "fieldtype": "Link",
+            "label": "Company",
+            "options": "Company"
+        },
+        {
+            "fieldname": "default_cost_center",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Default Cost Center",
+            "options": "Cost Center",
+            "reqd": 1
+        },
+        {
+            "fieldname": "remarks",
+            "fieldtype": "Small Text",
+            "label": "Remarks"
+        },
+        {
+            "default": "0",
+            "fieldname": "multi_currency",
+            "fieldtype": "Check",
+            "label": "Multi Currency"
+        },
+        {
+            "depends_on": "eval: doc.multi_currency == 1;",
+            "fieldname": "exchange_rate",
+            "fieldtype": "Currency",
+            "label": "Exchange Rate",
+            "options": "Currency",
+            "read_only": 1
+        },
+        {
+            "depends_on": "eval: doc.multi_currency === 1;",
+            "fieldname": "paid_amount_in_account_currency",
+            "fieldtype": "Currency",
+            "label": "Paid Amount In Account Currency",
+            "options": "account_currency"
+        },
+        {
+            "fieldname": "section_break_dvzq6",
+            "fieldtype": "Section Break"
+        },
+        {
+            "fieldname": "column_break_l7wep",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "total_debit",
+            "fieldtype": "Currency",
+            "label": "Total Debit",
+            "options": "Company:company:default_currency"
+        },
+        {
+            "depends_on": "eval: doc.multi_currency == 1;",
+            "fieldname": "exchange_rate_date",
+            "fieldtype": "Date",
+            "label": "Exchange Rate Date",
+            "read_only": 1
+        },
+        {
+            "depends_on": "eval: doc.multi_currency == 1;",
+            "fieldname": "currency_exchange_link",
+            "fieldtype": "Link",
+            "label": "Currency Exchange Link",
+            "options": "Currency Exchange"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "is_submittable": 1,
+    "links": [],
+    "modified": "2024-01-03 23:11:26.198314",
+    "modified_by": "Administrator",
+    "module": "Expense Pay",
+    "name": "Expenses Entry",
+    "naming_rule": "By \"Naming Series\" field",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
 }

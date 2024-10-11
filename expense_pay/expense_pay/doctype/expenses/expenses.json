@@ -7,8 +7,12 @@
  "engine": "InnoDB",
  "field_order": [
   "account_paid_to",
+  "expense_entry_type",
   "cost_center",
   "project",
+  "vat_template",
+  "amount_without_vat",
+  "vat_amount",
   "amount",
   "remarks",
   "column_break_49agz",
@@ -23,8 +27,11 @@
  "fields": [
   {
    "columns": 2,
+   "fetch_from": "expense_entry_type.account",
    "fieldname": "account_paid_to",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
    "label": "Account Paid To",
    "options": "Account"
   },
@@ -36,9 +43,12 @@
    "options": "Cost Center"
   },
   {
+   "columns": 1,
    "fieldname": "amount",
    "fieldtype": "Currency",
-   "label": "Amount",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Amount with VAT",
    "options": "Company:company:default_currency",
    "read_only_depends_on": "eval: parent.multi_currency === 1;"
   },
@@ -47,6 +57,7 @@
    "fieldname": "project",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_preview": 1,
    "label": "Project",
    "options": "Project"
   },
@@ -54,6 +65,8 @@
    "columns": 1,
    "fieldname": "remarks",
    "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "in_preview": 1,
    "label": "Remarks"
   },
   {
@@ -104,12 +117,46 @@
    "fieldtype": "Link",
    "label": "Currency Exchange Link",
    "options": "Currency Exchange"
+  },
+  {
+   "columns": 1,
+   "fieldname": "expense_entry_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Expense Entry Type",
+   "options": "Expense Entry Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "vat_template",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "VAT Template",
+   "options": "Purchase Taxes and Charges Template"
+  },
+  {
+   "columns": 1,
+   "fieldname": "amount_without_vat",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Amount without VAT"
+  },
+  {
+   "columns": 1,
+   "fieldname": "vat_amount",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "VAT Amount"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-01-03 23:13:40.112053",
+ "modified": "2024-10-10 13:10:56.401274",
  "modified_by": "Administrator",
  "module": "Expense Pay",
  "name": "Expenses",

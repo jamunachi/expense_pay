@@ -418,7 +418,55 @@ frappe.ui.form.on("Expenses", {
             });
         }
     },
+    vat_template: function (frm, cdt, cdn) {
+        // Get the current child row data
+        let row = locals[cdt][cdn];
+
+        if (row.vat_template) {
+            calculate_vat(row, cdt, cdn);
+        }
+    },
+
+    // To handle changes in amount_without_vat as well
+    amount_without_vat: function (frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+
+        if (row.vat_template) {
+            calculate_vat(row, cdt, cdn);
+        }
+    },
 });
+
+function calculate_vat(row, cdt, cdn) {
+    if (row.vat_template) {
+        // Call the server-side method to fetch the tax rate from the selected template
+        frappe.call({
+            method: "frappe.client.get",
+            args: {
+                doctype: "Purchase Taxes and Charges Template",
+                name: row.vat_template,
+            },
+            callback: function (r) {
+                if (r.message) {
+                    // Assuming the rate is in the first row of the taxes child table
+                    let tax_rate = r.message.taxes[0].rate;
+
+                    // Update VAT Amount based on Amount Without VAT
+                    let vat_amount = (row.amount_without_vat * tax_rate) / 100;
+
+                    // Update the child table fields
+                    frappe.model.set_value(cdt, cdn, "vat_amount", vat_amount);
+                    frappe.model.set_value(
+                        cdt,
+                        cdn,
+                        "amount",
+                        row.amount_without_vat + vat_amount
+                    );
+                }
+            },
+        });
+    }
+}
 
 function add_custom_column(frm) {
     let intervalId;
