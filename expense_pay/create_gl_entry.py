@@ -112,55 +112,29 @@ def cancel_gl_entries(doc, method):
     
     gl_entries = []
 
-    paid_to_accounts = ", ".join([d.account_paid_to for d in doc.expenses])
+    # Check if the necessary fields exist to identify if it's a newer version
+    is_new_version = all(
+        hasattr(expense, "vat_amount") and hasattr(expense, "amount_without_vat") and hasattr(expense, "vat_template") and expense.amount_without_vat > 0
+        for expense in doc.expenses
+    )
 
-    # Update the remarks for cancellation with VAT details
-    vat_remarks = ""
-    for expense in doc.expenses:
-        vat_remarks += f"Cancelled Expense: {expense.account_paid_to}, VAT: {expense.vat_amount} ({expense.vat_template})\n"
+    if not is_new_version:
+        logger.info(f"Old version of the expenses entry")
+        # If it's an older document, execute the older function logic
 
-    cancel_remarks = f"On Cancelled {doc.remarks if doc.remarks else ''}\nVAT Info:\n{vat_remarks}"
+        paid_to_accounts = ", ".join([d.account_paid_to for d in doc.expenses])
 
-    # Create GL entry for Account Paid From
-    gl_entry = {
-        "doctype": "GL Entry",
-        "posting_date": doc.posting_date,
-        "account": doc.account_paid_from,
-        "cost_center": doc.default_cost_center,
-        "debit": doc.paid_amount,
-        "credit": 0,
-        "debit_in_account_currency": doc.paid_amount,
-        "credit_in_account_currency": 0,
-        "against": paid_to_accounts,
-        "voucher_type": _("Expenses Entry"),
-        "voucher_no": doc.name,
-        "is_opening": "No",
-        "is_advance": "No",
-        "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
-        "company": doc.company,
-        "is_cancelled": 1,
-        "to_rename": 1,
-        "remarks": cancel_remarks  # Use updated remarks with VAT info
-    }
-    gl_entries.append(gl_entry)
-
-    # Create GL entries for Expenses child table and VAT
-    for expense in doc.expenses:
-        # Update the remarks for cancellation with VAT information
-        expense_cancel_remarks = f"On Cancelled {expense.remarks if expense.remarks else ''} | \n Amount without VAT: {expense.amount_without_vat} \n VAT Amount: {expense.vat_amount} ({expense.vat_template})"
-        
-        # 1. GL entry for the amount without VAT (Expense Cancellation)
+        # Create GL entry for Account Paid From
         gl_entry = {
             "doctype": "GL Entry",
             "posting_date": doc.posting_date,
-            "account": expense.account_paid_to,
-            "debit": 0,
-            "credit": expense.amount_without_vat,
-            "cost_center": (expense.cost_center if expense.cost_center else doc.default_cost_center),
-            "project": (expense.project if expense.project else ""),
-            "debit_in_account_currency": 0,
-            "credit_in_account_currency": expense.amount_without_vat,
-            "against": doc.account_paid_from,
+            "account": doc.account_paid_from,
+            "cost_center": doc.default_cost_center,
+            "debit": doc.paid_amount,
+            "credit": 0,
+            "debit_in_account_currency": doc.paid_amount,
+            "credit_in_account_currency": 0,
+            "against": paid_to_accounts,
             "voucher_type": _("Expenses Entry"),
             "voucher_no": doc.name,
             "is_opening": "No",
@@ -169,39 +143,129 @@ def cancel_gl_entries(doc, method):
             "company": doc.company,
             "is_cancelled": 1,
             "to_rename": 1,
-            "remarks": expense_cancel_remarks  # Include VAT info in each expense's remark for cancellation
+            "remarks": "On Cancelled " + (doc.remarks if doc.remarks else "")
         }
         gl_entries.append(gl_entry)
 
-        # 2. Fetch VAT account and cost center from the VAT template
-        if expense.vat_template:
-            vat_template = frappe.get_doc("Purchase Taxes and Charges Template", expense.vat_template)
-            if vat_template and vat_template.taxes:
-                vat_account = vat_template.taxes[0].account_head
-                vat_cost_center = vat_template.taxes[0].cost_center
+        # Create GL entries for Expenses child table
+        for expense in doc.expenses:
+            gl_entry = {
+                "doctype": "GL Entry",
+                "posting_date": doc.posting_date,
+                "account": expense.account_paid_to,
+                "debit": 0,
+                "credit": expense.amount,
+                "cost_center": (expense.cost_center if expense.cost_center else doc.default_cost_center),
+                "project": (expense.project if expense.project else ""),
+                "debit_in_account_currency": 0,
+                "credit_in_account_currency": expense.amount,
+                "against": doc.account_paid_from,
+                "voucher_type": _("Expenses Entry"),
+                "voucher_no": doc.name,
+                "is_opening": "No",
+                "is_advance": "No",
+                "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
+                "company": doc.company,
+                "is_cancelled": 1,
+                "to_rename": 1,
+                "remarks": "On Cancelled " + (expense.remarks if expense.remarks else "")
+            }
+            gl_entries.append(gl_entry)
 
-                # 3. GL entry for the VAT amount (Cancellation)
-                vat_cancel_remarks = f"On Cancelled VAT Amount: {expense.vat_amount} | VAT Account: {vat_account} | Cost Center: {vat_cost_center}"
-                vat_gl_entry = {
-                    "doctype": "GL Entry",
-                    "posting_date": doc.posting_date,
-                    "account": vat_account,  # Use VAT account from the template
-                    "cost_center": vat_cost_center,  # Use VAT cost center from the template
-                    "debit": 0,
-                    "credit": expense.vat_amount,  # Credit for VAT
-                    "debit_in_account_currency": 0,
-                    "credit_in_account_currency": expense.vat_amount,
-                    "against": expense.account_paid_to,  # VAT is against the expense's account_paid_to
-                    "voucher_type": _("Expenses Entry"),
-                    "voucher_no": doc.name,
-                    "is_opening": "No",
-                    "is_advance": "No",
-                    "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
-                    "company": doc.company,
-                    "is_cancelled": 1,
-                    "remarks": vat_cancel_remarks  # VAT cancellation remarks
-                }
-                gl_entries.append(vat_gl_entry)
+    else:
+        logger.info(f"New expense entry version selected")
+        # New version logic - Proceed with the updated logic
+
+        paid_to_accounts = ", ".join([d.account_paid_to for d in doc.expenses])
+
+        # Update the remarks for cancellation with VAT details
+        vat_remarks = ""
+        for expense in doc.expenses:
+            vat_remarks += f"Cancelled Expense: {expense.account_paid_to}, VAT: {expense.vat_amount} ({expense.vat_template})\n"
+
+        cancel_remarks = f"On Cancelled {doc.remarks if doc.remarks else ''}\nVAT Info:\n{vat_remarks}"
+
+        # Create GL entry for Account Paid From
+        gl_entry = {
+            "doctype": "GL Entry",
+            "posting_date": doc.posting_date,
+            "account": doc.account_paid_from,
+            "cost_center": doc.default_cost_center,
+            "debit": doc.paid_amount,
+            "credit": 0,
+            "debit_in_account_currency": doc.paid_amount,
+            "credit_in_account_currency": 0,
+            "against": paid_to_accounts,
+            "voucher_type": _("Expenses Entry"),
+            "voucher_no": doc.name,
+            "is_opening": "No",
+            "is_advance": "No",
+            "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
+            "company": doc.company,
+            "is_cancelled": 1,
+            "to_rename": 1,
+            "remarks": cancel_remarks  # Use updated remarks with VAT info
+        }
+        gl_entries.append(gl_entry)
+
+        # Create GL entries for Expenses child table and VAT
+        for expense in doc.expenses:
+            # Update the remarks for cancellation with VAT information
+            expense_cancel_remarks = f"On Cancelled {expense.remarks if expense.remarks else ''} | \n Amount without VAT: {expense.amount_without_vat} \n VAT Amount: {expense.vat_amount} ({expense.vat_template})"
+            
+            # 1. GL entry for the amount without VAT (Expense Cancellation)
+            gl_entry = {
+                "doctype": "GL Entry",
+                "posting_date": doc.posting_date,
+                "account": expense.account_paid_to,
+                "debit": 0,
+                "credit": expense.amount_without_vat,
+                "cost_center": (expense.cost_center if expense.cost_center else doc.default_cost_center),
+                "project": (expense.project if expense.project else ""),
+                "debit_in_account_currency": 0,
+                "credit_in_account_currency": expense.amount_without_vat,
+                "against": doc.account_paid_from,
+                "voucher_type": _("Expenses Entry"),
+                "voucher_no": doc.name,
+                "is_opening": "No",
+                "is_advance": "No",
+                "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
+                "company": doc.company,
+                "is_cancelled": 1,
+                "to_rename": 1,
+                "remarks": expense_cancel_remarks  # Include VAT info in each expense's remark for cancellation
+            }
+            gl_entries.append(gl_entry)
+
+            # 2. Fetch VAT account and cost center from the VAT template
+            if expense.vat_template:
+                vat_template = frappe.get_doc("Purchase Taxes and Charges Template", expense.vat_template)
+                if vat_template and vat_template.taxes:
+                    vat_account = vat_template.taxes[0].account_head
+                    vat_cost_center = vat_template.taxes[0].cost_center
+
+                    # 3. GL entry for the VAT amount (Cancellation)
+                    vat_cancel_remarks = f"On Cancelled VAT Amount: {expense.vat_amount} | VAT Account: {vat_account} | Cost Center: {vat_cost_center}"
+                    vat_gl_entry = {
+                        "doctype": "GL Entry",
+                        "posting_date": doc.posting_date,
+                        "account": vat_account,  # Use VAT account from the template
+                        "cost_center": vat_cost_center,  # Use VAT cost center from the template
+                        "debit": 0,
+                        "credit": expense.vat_amount,  # Credit for VAT
+                        "debit_in_account_currency": 0,
+                        "credit_in_account_currency": expense.vat_amount,
+                        "against": expense.account_paid_to,  # VAT is against the expense's account_paid_to
+                        "voucher_type": _("Expenses Entry"),
+                        "voucher_no": doc.name,
+                        "is_opening": "No",
+                        "is_advance": "No",
+                        "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
+                        "company": doc.company,
+                        "is_cancelled": 1,
+                        "remarks": vat_cancel_remarks  # VAT cancellation remarks
+                    }
+                    gl_entries.append(vat_gl_entry)
 
     # Save and submit all GL Entries with cancellation flag
     for gl_entry in gl_entries:

@@ -242,6 +242,22 @@ frappe.ui.form.on("Expenses", {
                 );
             }
         });
+        console.log("row.vat_amount: ", d.vat_amount);
+        console.log("row.amount_without_vat: ", d.amount_without_vat);
+        if (d.vat_amount === 0 || d.vat_amount === undefined) {
+            console.log("vat_amount passedd");
+            if (
+                d.amount_without_vat === undefined ||
+                d.amount_without_vat === 0
+            ) {
+                console.log("copy amountt to amount_without_vat: ");
+                d.amount_without_vat = d.amount;
+                frm.refresh_field("items");
+                frm.fields_dict.expenses.grid.grid_rows_by_docname[
+                    d.name
+                ].refresh();
+            }
+        }
     },
     account_paid_to: function (frm, cdt, cdn) {
         let d = locals[cdt][cdn];
@@ -430,9 +446,19 @@ frappe.ui.form.on("Expenses", {
     // To handle changes in amount_without_vat as well
     amount_without_vat: function (frm, cdt, cdn) {
         let row = locals[cdt][cdn];
-
-        if (row.vat_template) {
+        console.log("row.amount_without_vat: ", row.amount_without_vat);
+        console.log("row.amount", row.amount);
+        if (row.vat_template !== undefined) {
             calculate_vat(row, cdt, cdn);
+        } else {
+            if (!row.amount) {
+                row.amount = row.amount_without_vat;
+                frm.refresh_field("items");
+                frm.fields_dict.expenses.grid.grid_rows_by_docname[
+                    row.name
+                ].refresh();
+                console.log("Updated amount with vat");
+            }
         }
     },
 });
