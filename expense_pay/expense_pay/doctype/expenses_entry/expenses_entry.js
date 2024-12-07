@@ -73,6 +73,30 @@ frappe.ui.form.on("Expenses Entry", {
                 "Total Debit amount must be equal to or less than the Paid Amount"
             );
         }
+
+        // Validation 2: Check each row in the Expenses child table
+        let invalid_rows = [];
+
+        frm.doc.expenses.forEach((expense, index) => {
+            let calculated_total = parseFloat(
+                (expense.amount_without_vat + expense.vat_amount).toFixed(2)
+            );
+            let rounded_amount = parseFloat(expense.amount.toFixed(2));
+
+            if (rounded_amount !== calculated_total) {
+                invalid_rows.push(
+                    `Row #${expense.idx}: Amount (${rounded_amount}) does not equal Amount Without VAT (${expense.amount_without_vat}) + VAT Amount (${expense.vat_amount})`
+                );
+            }
+        });
+
+        if (invalid_rows.length > 0) {
+            frappe.throw(
+                `The following rows have miscalculated amounts:<br><br>${invalid_rows.join(
+                    "<br>"
+                )}`
+            );
+        }
     },
     multi_currency: function (frm) {
         if (frm.doc.multi_currency) {
