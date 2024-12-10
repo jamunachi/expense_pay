@@ -68,6 +68,14 @@ frappe.ui.form.on("Expenses Entry", {
         let rounded_paid_amount = parseFloat(frm.doc.paid_amount.toFixed(2));
         let rounded_total_debit = parseFloat(frm.doc.total_debit.toFixed(2));
 
+        if (rounded_paid_amount <= 0) {
+            frappe.throw("Paid Amount cannot be zero");
+        }
+
+        if (rounded_total_debit <= 0) {
+            frappe.throw("Total Debit cannot be zero");
+        }
+
         if (rounded_paid_amount !== rounded_total_debit) {
             frappe.throw(
                 "Total Debit amount must be equal to or less than the Paid Amount"

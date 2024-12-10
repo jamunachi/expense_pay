@@ -118,6 +118,18 @@ def cancel_gl_entries(doc, method):
     
     gl_entries = []
 
+    # Check if GL Entries exist for the current document
+    existing_gl_entries = frappe.get_all(
+        "GL Entry",
+        filters={"voucher_type": _("Expenses Entry"), "voucher_no": doc.name, "is_cancelled": 0},
+        fields=["name"]
+    )
+
+    # If no GL entries exist, skip the cancellation process
+    if not existing_gl_entries:
+        logger.info(f"No GL entries found for {doc.name}. Skipping cancellation process.")
+        return
+
     # Check if the necessary fields exist to identify if it's a newer version
     is_new_version = all(
         hasattr(expense, "vat_amount") and hasattr(expense, "amount_without_vat") and hasattr(expense, "vat_template") and expense.amount_without_vat > 0
