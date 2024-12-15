@@ -62,9 +62,12 @@ frappe.ui.form.on("Expenses Entry", {
         });
     },
     before_save: function (frm) {
-        console.log("paid amount", frm.doc.paid_amount);
-        console.log("total debit", frm.doc.total_debit);
+        update_total_debit(frm);
+    },
 
+    // validate event: Perform all validation checks
+    validate: function (frm) {
+        // Round paid amount and total debit for comparison
         let rounded_paid_amount = parseFloat(frm.doc.paid_amount.toFixed(2));
         let rounded_total_debit = parseFloat(frm.doc.total_debit.toFixed(2));
 
@@ -85,13 +88,22 @@ frappe.ui.form.on("Expenses Entry", {
         // Validation 2: Check each row in the Expenses child table
         let invalid_rows = [];
 
-        frm.doc.expenses.forEach((expense, index) => {
-            let calculated_total = parseFloat(
-                (expense.amount_without_vat + expense.vat_amount).toFixed(2)
-            );
+        frm.doc.expenses.forEach((expense) => {
+            let calculated_total;
+            if (expense.vat_amount > 0) {
+                calculated_total = parseFloat(
+                    (expense.amount_without_vat + expense.vat_amount).toFixed(2)
+                );
+            } else {
+                calculated_total = parseFloat(
+                    expense.amount_without_vat.toFixed(2)
+                );
+            }
             let rounded_amount = parseFloat(expense.amount.toFixed(2));
 
             if (rounded_amount !== calculated_total) {
+                console.log("Rounded Amount : " + rounded_amount);
+                console.log("Calculated Total : ", calculated_total);
                 invalid_rows.push(
                     `Row #${expense.idx}: Amount (${rounded_amount}) does not equal Amount Without VAT (${expense.amount_without_vat}) + VAT Amount (${expense.vat_amount})`
                 );
@@ -106,6 +118,7 @@ frappe.ui.form.on("Expenses Entry", {
             );
         }
     },
+
     multi_currency: function (frm) {
         if (frm.doc.multi_currency) {
             frm.toggle_reqd("exchange_rate", frm.doc.multi_currency);
@@ -255,25 +268,27 @@ frappe.ui.form.on("Expenses", {
     amount: function (frm, cdt, cdn) {
         let d = locals[cdt][cdn];
         // sum all the amounts from the expenses table and set it to the total_debit field
-        let totalAmountPromise = new Promise(function (resolve, reject) {
-            let totalAmount = 0;
-            frm.doc.expenses.forEach(function (d) {
-                totalAmount += d.amount;
-            });
+        // let totalAmountPromise = new Promise(function (resolve, reject) {
+        //     let totalAmount = 0;
+        //     frm.doc.expenses.forEach(function (d) {
+        //         totalAmount += d.amount;
+        //     });
 
-            resolve(totalAmount);
-        });
+        //     resolve(totalAmount);
+        // });
 
-        totalAmountPromise.then(function (totalAmount) {
-            frm.set_value("total_debit", totalAmount);
-            frm.set_value("paid_amount", totalAmount);
-            if (frm.doc.multi_currency) {
-                frm.set_value(
-                    "paid_amount_in_account_currency",
-                    totalAmount / frm.doc.exchange_rate
-                );
-            }
-        });
+        // totalAmountPromise.then(function (totalAmount) {
+        //     frm.set_value("total_debit", totalAmount);
+        //     frm.set_value("paid_amount", totalAmount);
+        //     if (frm.doc.multi_currency) {
+        //         frm.set_value(
+        //             "paid_amount_in_account_currency",
+        //             totalAmount / frm.doc.exchange_rate
+        //         );
+        //     }
+        // });
+
+        update_total_debit(frm);
         console.log("row.vat_amount: ", d.vat_amount);
         console.log("row.amount_without_vat: ", d.amount_without_vat);
         if (d.vat_amount === 0 || d.vat_amount === undefined) {
@@ -388,6 +403,7 @@ frappe.ui.form.on("Expenses", {
             "reqd",
             1
         );
+        update_total_debit(frm);
     },
     account_currency: function (frm, cdt, cdn) {
         var row = locals[cdt][cdn];
@@ -480,6 +496,7 @@ frappe.ui.form.on("Expenses", {
         let row = locals[cdt][cdn];
         console.log("row.amount_without_vat: ", row.amount_without_vat);
         console.log("row.amount", row.amount);
+        update_total_debit(frm);
         if (row.vat_template !== undefined) {
             calculate_vat(row, cdt, cdn);
         } else {
@@ -520,6 +537,7 @@ function calculate_vat(row, cdt, cdn) {
                         "amount",
                         row.amount_without_vat + vat_amount
                     );
+                    update_total_debit(frm);
                 }
             },
         });
@@ -628,4 +646,32 @@ function update_exchange_rate(frm) {
             },
         });
     }
+}
+
+function update_total_debit(frm) {
+    console.log("Total Debit Amount called");
+
+    // Initialize total_debit_amount to 0
+    let total_debit_amount = 0;
+
+    frm.doc.expenses.forEach((expense, index) => {
+        if (expense.vat_amount) {
+            total_debit_amount +=
+                expense.amount_without_vat + expense.vat_amount;
+        } else {
+            total_debit_amount += expense.amount_without_vat;
+        }
+    });
+
+    frm.set_value("total_debit", total_debit_amount);
+
+    if (frm.doc.multi_currency) {
+        frm.set_value(
+            "paid_amount_in_account_currency",
+            total_debit_amount / frm.doc.exchange_rate
+        );
+    }
+
+    frm.refresh_field("total_debit");
+    console.log("Total debit amount updated");
 }
