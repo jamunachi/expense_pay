@@ -3,6 +3,7 @@
 
 frappe.ui.form.on("Expenses Entry", {
     refresh: function (frm) {
+        field_control(frm);
         frm.events.show_general_ledger(frm);
         // add_custom_column(frm);
         // Call the function to modify existing rows
@@ -50,6 +51,7 @@ frappe.ui.form.on("Expenses Entry", {
         }
     },
     onload: function (frm) {
+        field_control(frm);
         frm.set_query("account_paid_from", function () {
             return {
                 filters: [["Account", "is_group", "=", 0]],
@@ -126,6 +128,7 @@ frappe.ui.form.on("Expenses Entry", {
                 "paid_amount_in_account_currency",
                 frm.doc.multi_currency
             );
+            frm.set_df_property("paid_amount", "read_only", 1);
             update_exchange_rate(frm);
             // add_custom_column(frm);
             // modify_existing_rows(frm);
@@ -166,6 +169,7 @@ frappe.ui.form.on("Expenses Entry", {
                 1
             );
         } else {
+            frm.set_df_property("paid_amount", "read_only", 0);
             frm.fields_dict.expenses.grid.update_docfield_property(
                 "amount",
                 "read_only",
@@ -674,4 +678,79 @@ function update_total_debit(frm) {
 
     frm.refresh_field("total_debit");
     console.log("Total debit amount updated");
+}
+
+function field_control(frm) {
+    if (frm.doc.docstatus === 1) {
+        // Check if the document is submitted
+        frappe.call({
+            method: "frappe.client.get",
+            args: {
+                doctype: "Expense Entry Settings",
+            },
+            callback: function (r) {
+                if (r.message) {
+                    const settings = r.message;
+                    const user_roles = frappe.user_roles;
+
+                    // Check if user has allowed roles and the setting to allow editing after submit is true
+                    const is_allowed = settings.allowed_roles.some((role) =>
+                        user_roles.includes(role.role)
+                    );
+
+                    if (settings.allow_after_submit_entries && is_allowed) {
+                        // Allow editing
+                        frm.set_df_property("paid_amount", "read_only", 0);
+                        frm.set_df_property("exchange_rate", "read_only", 0);
+                        frm.set_df_property("total_debit", "read_only", 0);
+                        frm.fields_dict.expenses.grid.update_docfield_property(
+                            "vat_template",
+                            "read_only",
+                            0
+                        );
+                        frm.fields_dict.expenses.grid.update_docfield_property(
+                            "vat_amount",
+                            "read_only",
+                            0
+                        );
+                        frm.fields_dict.expenses.grid.update_docfield_property(
+                            "amount",
+                            "read_only",
+                            0
+                        );
+                        frm.fields_dict.expenses.grid.update_docfield_property(
+                            "amount_without_vat",
+                            "read_only",
+                            0
+                        );
+                    } else {
+                        // Make fields read-only
+                        frm.set_df_property("paid_amount", "read_only", 1);
+                        frm.set_df_property("exchange_rate", "read_only", 1);
+                        frm.set_df_property("total_debit", "read_only", 1);
+                        frm.fields_dict.expenses.grid.update_docfield_property(
+                            "vat_template",
+                            "read_only",
+                            1
+                        );
+                        frm.fields_dict.expenses.grid.update_docfield_property(
+                            "vat_amount",
+                            "read_only",
+                            1
+                        );
+                        frm.fields_dict.expenses.grid.update_docfield_property(
+                            "amount",
+                            "read_only",
+                            1
+                        );
+                        frm.fields_dict.expenses.grid.update_docfield_property(
+                            "amount_without_vat",
+                            "read_only",
+                            1
+                        );
+                    }
+                }
+            },
+        });
+    }
 }

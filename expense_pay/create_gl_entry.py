@@ -68,7 +68,7 @@ def create_gl_entries(doc, method):
         gl_entries.append(gl_entry)
 
         # GL entry for VAT amount
-        if expense.vat_template:
+        if expense.vat_template and (expense.vat_amount > 0):
             vat_template = frappe.get_doc("Purchase Taxes and Charges Template", expense.vat_template)
             if vat_template and vat_template.taxes:
                 vat_account = vat_template.taxes[0].account_head
