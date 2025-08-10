@@ -4,19 +4,17 @@
 import frappe
 from frappe.model.document import Document
 
-
 class ExpenseEntrySettings(Document):
     pass
-
 
 @frappe.whitelist()
 def get_ui_filters():
     s = frappe.get_single("Expense Entry Settings")
 
-    def to_list(val):
+    def to_list(val: str | None) -> list[str]:
         if not val:
             return []
-        out = []
+        out: list[str] = []
         for line in val.splitlines():
             for p in line.split(","):
                 p = p.strip()
