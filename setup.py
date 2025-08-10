@@ -6,6 +6,7 @@ with open("requirements.txt") as f:
 # get version from __version__ variable in expense_pay/__init__.py
 from expense_pay import __version__ as version
 
+
 setup(
 	name="expense_pay",
 	version=version,
