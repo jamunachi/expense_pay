@@ -20,6 +20,148 @@
    "fieldtype": "Table",
    "label": "Allowed Roles",
    "options": "Allowed Roles"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "fieldname": "section_logging",
+   "fieldtype": "Section Break",
+   "label": "Logging & Precision"
+  },
+  {
+   "fieldname": "enable_debug_logs",
+   "fieldtype": "Check",
+   "label": "Enable Debug Logs",
+   "default": "0"
+  },
+  {
+   "fieldname": "log_to_error_log",
+   "fieldtype": "Check",
+   "label": "Log to Error Log",
+   "default": "1"
+  },
+  {
+   "fieldname": "section_cc",
+   "fieldtype": "Section Break",
+   "label": "Cost Center Rules"
+  },
+  {
+   "fieldname": "enforce_header_cc_credit",
+   "fieldtype": "Check",
+   "label": "Header CC for Credit",
+   "default": "1"
+  },
+  {
+   "fieldname": "enforce_row_cc_debit",
+   "fieldtype": "Check",
+   "label": "Row CC for Debit",
+   "default": "1"
+  },
+  {
+   "fieldname": "vat_use_row_cc",
+   "fieldtype": "Check",
+   "label": "VAT uses Row CC",
+   "default": "1"
+  },
+  {
+   "fieldname": "fallback_header_cc",
+   "fieldtype": "Check",
+   "label": "Fallback to Header CC",
+   "default": "1"
+  },
+  {
+   "fieldname": "section_round",
+   "fieldtype": "Section Break",
+   "label": "Rounding"
+  },
+  {
+   "fieldname": "gl_amount_precision",
+   "fieldtype": "Int",
+   "label": "GL Amount Precision (override)",
+   "description": "Leave blank to use GL Entry field precision"
+  },
+  {
+   "fieldname": "section_filters",
+   "fieldtype": "Section Break",
+   "label": "Dropdown Filters"
+  },
+  {
+   "fieldname": "only_leaf_accounts",
+   "fieldtype": "Check",
+   "label": "Show only leaf Accounts",
+   "default": "1"
+  },
+  {
+   "fieldname": "only_leaf_cost_centers",
+   "fieldtype": "Check",
+   "label": "Show only leaf Cost Centers",
+   "default": "1"
+  },
+  {
+   "fieldname": "debit_account_types",
+   "fieldtype": "Small Text",
+   "label": "Allowed Debit Account Types (optional)",
+   "description": "One per line; must match Account.account_type"
+  },
+  {
+   "fieldname": "credit_account_types",
+   "fieldtype": "Small Text",
+   "label": "Allowed Credit Account Types (optional)",
+   "description": "One per line; must match Account.account_type"
+  },
+  {
+   "fieldname": "section_roles",
+   "fieldtype": "Section Break",
+   "label": "Role-based Rules"
+  },
+  {
+   "fieldname": "section_import",
+   "fieldtype": "Section Break",
+   "label": "Import"
+  },
+  {
+   "fieldname": "restrict_submit",
+   "fieldtype": "Check",
+   "label": "Restrict Submit to Allowed Roles",
+   "default": "1"
+  },
+  {
+   "fieldname": "restrict_cancel",
+   "fieldtype": "Check",
+   "label": "Restrict Cancel to Allowed Roles",
+   "default": "1"
+  },
+  {
+   "fieldname": "restrict_import",
+   "fieldtype": "Check",
+   "label": "Restrict Import to Allowed Roles",
+   "default": "1"
+  },
+  {
+   "fieldname": "restrict_override_filters",
+   "fieldtype": "Check",
+   "label": "Restrict Override Picker Filters",
+   "default": "1"
+  },
+  {
+   "fieldname": "allow_multi_tax_per_row",
+   "fieldtype": "Check",
+   "label": "Allow multi-tax per row",
+   "default": "0"
+  },
+  {
+   "fieldname": "enable_import_ui",
+   "fieldtype": "Check",
+   "label": "Enable Import UI (button on form)",
+   "default": "1"
+  },
+  {
+   "fieldname": "strict_vat_rate_check",
+   "fieldtype": "Check",
+   "label": "Strict VAT Rate Check",
+   "default": "0",
+   "description": "Validate that VAT Amount ~= (Amount w/o VAT * template %)."
+>>>>>>> origin/release/v1.0.0
   }
  ],
  "index_web_pages_for_search": 1,

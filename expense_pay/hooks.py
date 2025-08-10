@@ -113,7 +113,13 @@ app_license = "MIT"
 doc_events = {
     "Expenses Entry": {
         "on_submit": "expense_pay.create_gl_entry.create_gl_entries",
+<<<<<<< HEAD
         "on_cancel": "expense_pay.create_gl_entry.cancel_gl_entries",
+=======
+        "before_submit": "expense_pay.permissions.enforce_submit",
+        "on_cancel": "expense_pay.create_gl_entry.cancel_gl_entries",
+        "before_cancel": "expense_pay.permissions.enforce_cancel",
+>>>>>>> origin/release/v1.0.0
         "on_trash": "expense_pay.create_gl_entry.delete_gl_entries"
     }
 }

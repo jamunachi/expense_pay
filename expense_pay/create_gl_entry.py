@@ -1,13 +1,67 @@
 import frappe
 from frappe import _
+<<<<<<< HEAD
 from frappe.utils import  now, logger
+=======
+from frappe.utils import  now, logger, flt
+>>>>>>> origin/release/v1.0.0
 from erpnext.accounts.utils import _delete_gl_entries
 
 logger.set_log_level("DEBUG")
 logger = frappe.logger("expensepay", file_count=1, allow_site=True)
 
+<<<<<<< HEAD
 @frappe.whitelist()
 def create_gl_entries(doc, method):
+=======
+# Cache settings
+_SETTINGS = None
+def _ep_get_settings():
+    global _SETTINGS
+    if _SETTINGS is None:
+        try:
+            _SETTINGS = frappe.get_single("Expense Entry Settings")
+        except Exception:
+            class _Fallback: pass
+            _SETTINGS = _Fallback()
+            # defaults
+            _SETTINGS.enable_debug_logs = 0
+            _SETTINGS.log_to_error_log = 1
+            _SETTINGS.vat_use_row_cc = 1
+            _SETTINGS.fallback_header_cc = 1
+            _SETTINGS.enforce_header_cc_credit = 1
+            _SETTINGS.enforce_row_cc_debit = 1
+            _SETTINGS.gl_amount_precision = None
+            _SETTINGS.only_leaf_accounts = 1
+            _SETTINGS.only_leaf_cost_centers = 1
+            _SETTINGS.allow_multi_tax_per_row = 0
+    return _SETTINGS
+
+# Helper: get currency precision for GL amounts once
+try:
+    _GL_PREC = frappe.get_precision("GL Entry", "debit") or 2
+except Exception:
+    _GL_PREC = 2
+
+def _ep_round(v):
+    try:
+        s = _ep_get_settings()
+        prec = getattr(s, "gl_amount_precision", None) or _GL_PREC
+    except Exception:
+        prec = _GL_PREC
+    return flt(v or 0, prec)
+
+@frappe.whitelist()
+def create_gl_entries(doc, method):
+    settings = _ep_get_settings()
+    try:
+        logger.set_log_level("DEBUG" if getattr(settings, "enable_debug_logs", 0) else "INFO")
+    except Exception:
+        pass
+    try:
+        # MAIN LOGIC START
+        _ep_validate_leaf(doc)
+>>>>>>> origin/release/v1.0.0
     gl_entries = []
 
     # Create GL entry for Account Paid From
@@ -25,6 +79,7 @@ def create_gl_entries(doc, method):
         "doctype": "GL Entry",
         "posting_date": doc.posting_date,
         "account": doc.account_paid_from,
+<<<<<<< HEAD
         "cost_center": doc.default_cost_center or "",
         "debit": 0,
         "credit": doc.paid_amount,
@@ -32,6 +87,15 @@ def create_gl_entries(doc, method):
         "credit_in_account_currency": doc.paid_amount,
         "against": paid_to_accounts,
         "voucher_type": _("Expenses Entry"),
+=======
+        "cost_center": (doc.default_cost_center if getattr(_ep_get_settings(), "enforce_header_cc_credit", 1) else ""),
+        "debit": _ep_round(0),
+        "credit": _ep_round(doc.paid_amount),
+        "debit_in_account_currency": _ep_round(0),
+        "credit_in_account_currency": _ep_round(doc.paid_amount),
+        "against": paid_to_accounts,
+        "voucher_type": "Expenses Entry",
+>>>>>>> origin/release/v1.0.0
         "voucher_no": doc.name,
         "is_opening": "No",
         "is_advance": "No",
@@ -52,12 +116,21 @@ def create_gl_entries(doc, method):
             "account": expense.account_paid_to,
             "cost_center": expense.cost_center or doc.default_cost_center,
             "project": expense.project or "",
+<<<<<<< HEAD
             "debit": expense.amount_without_vat,
             "credit": 0,
             "debit_in_account_currency": expense.amount_without_vat,
             "credit_in_account_currency": 0,
             "against": doc.account_paid_from,
             "voucher_type": _("Expenses Entry"),
+=======
+            "debit": _ep_round(expense.amount_without_vat),
+            "credit": _ep_round(0),
+            "debit_in_account_currency": _ep_round(expense.amount_without_vat),
+            "credit_in_account_currency": _ep_round(0),
+            "against": doc.account_paid_from,
+            "voucher_type": "Expenses Entry",
+>>>>>>> origin/release/v1.0.0
             "voucher_no": doc.name,
             "is_opening": "No",
             "is_advance": "No",
@@ -69,6 +142,7 @@ def create_gl_entries(doc, method):
 
         # GL entry for VAT amount
         if expense.vat_template and (expense.vat_amount > 0):
+<<<<<<< HEAD
             vat_template = frappe.get_doc("Purchase Taxes and Charges Template", expense.vat_template)
             if vat_template and vat_template.taxes:
                 vat_account = vat_template.taxes[0].account_head
@@ -164,6 +238,14 @@ def cancel_gl_entries(doc, method):
             "remarks": "On Cancelled " + (doc.remarks if doc.remarks else "")
         }
         gl_entries.append(gl_entry)
+=======
+            try:
+                vat_template = frappe.get_doc("Purchase Taxes and Charges Template", expense.vat_template)
+            except Exception:
+                vat_template = None
+            for _gle in _ep_build_vat_gl_entries(doc, expense, vat_template, _ep_get_settings(), is_cancellation=False):
+                gl_entries.append(_gle)
+>>>>>>> origin/release/v1.0.0
 
         # Create GL entries for Expenses child table
         for expense in doc.expenses:
@@ -171,6 +253,7 @@ def cancel_gl_entries(doc, method):
                 "doctype": "GL Entry",
                 "posting_date": doc.posting_date,
                 "account": expense.account_paid_to,
+<<<<<<< HEAD
                 "debit": 0,
                 "credit": expense.amount,
                 "cost_center": (expense.cost_center if expense.cost_center else doc.default_cost_center),
@@ -179,6 +262,16 @@ def cancel_gl_entries(doc, method):
                 "credit_in_account_currency": expense.amount,
                 "against": doc.account_paid_from,
                 "voucher_type": _("Expenses Entry"),
+=======
+                "debit": _ep_round(0),
+                "credit": _ep_round(expense.amount),
+                "cost_center": (expense.cost_center if getattr(_ep_get_settings(), "enforce_row_cc_debit", 1) else doc.default_cost_center) or doc.default_cost_center,
+                "project": (expense.project if expense.project else ""),
+                "debit_in_account_currency": _ep_round(0),
+                "credit_in_account_currency": _ep_round(expense.amount),
+                "against": doc.account_paid_from,
+                "voucher_type": "Expenses Entry",
+>>>>>>> origin/release/v1.0.0
                 "voucher_no": doc.name,
                 "is_opening": "No",
                 "is_advance": "No",
@@ -209,12 +302,21 @@ def cancel_gl_entries(doc, method):
             "posting_date": doc.posting_date,
             "account": doc.account_paid_from,
             "cost_center": doc.default_cost_center,
+<<<<<<< HEAD
             "debit": doc.paid_amount,
             "credit": 0,
             "debit_in_account_currency": doc.paid_amount,
             "credit_in_account_currency": 0,
             "against": paid_to_accounts,
             "voucher_type": _("Expenses Entry"),
+=======
+            "debit": _ep_round(doc.paid_amount),
+            "credit": _ep_round(0),
+            "debit_in_account_currency": _ep_round(doc.paid_amount),
+            "credit_in_account_currency": _ep_round(0),
+            "against": paid_to_accounts,
+            "voucher_type": "Expenses Entry",
+>>>>>>> origin/release/v1.0.0
             "voucher_no": doc.name,
             "is_opening": "No",
             "is_advance": "No",
@@ -236,6 +338,7 @@ def cancel_gl_entries(doc, method):
                 "doctype": "GL Entry",
                 "posting_date": doc.posting_date,
                 "account": expense.account_paid_to,
+<<<<<<< HEAD
                 "debit": 0,
                 "credit": expense.amount_without_vat,
                 "cost_center": (expense.cost_center if expense.cost_center else doc.default_cost_center),
@@ -244,6 +347,16 @@ def cancel_gl_entries(doc, method):
                 "credit_in_account_currency": expense.amount_without_vat,
                 "against": doc.account_paid_from,
                 "voucher_type": _("Expenses Entry"),
+=======
+                "debit": _ep_round(0),
+                "credit": _ep_round(expense.amount_without_vat),
+                "cost_center": (expense.cost_center if getattr(_ep_get_settings(), "enforce_row_cc_debit", 1) else doc.default_cost_center) or doc.default_cost_center,
+                "project": (expense.project if expense.project else ""),
+                "debit_in_account_currency": _ep_round(0),
+                "credit_in_account_currency": _ep_round(expense.amount_without_vat),
+                "against": doc.account_paid_from,
+                "voucher_type": "Expenses Entry",
+>>>>>>> origin/release/v1.0.0
                 "voucher_no": doc.name,
                 "is_opening": "No",
                 "is_advance": "No",
@@ -260,7 +373,11 @@ def cancel_gl_entries(doc, method):
                 vat_template = frappe.get_doc("Purchase Taxes and Charges Template", expense.vat_template)
                 if vat_template and vat_template.taxes:
                     vat_account = vat_template.taxes[0].account_head
+<<<<<<< HEAD
                     vat_cost_center = vat_template.taxes[0].cost_center
+=======
+                vat_cost_center = expense.cost_center or doc.default_cost_center or ""
+>>>>>>> origin/release/v1.0.0
 
                     # 3. GL entry for the VAT amount (Cancellation)
                     vat_cancel_remarks = f"On Cancelled VAT Amount: {expense.vat_amount} | VAT Account: {vat_account} | Cost Center: {vat_cost_center}"
@@ -269,12 +386,21 @@ def cancel_gl_entries(doc, method):
                         "posting_date": doc.posting_date,
                         "account": vat_account,  # Use VAT account from the template
                         "cost_center": vat_cost_center,  # Use VAT cost center from the template
+<<<<<<< HEAD
                         "debit": 0,
                         "credit": expense.vat_amount,  # Credit for VAT
                         "debit_in_account_currency": 0,
                         "credit_in_account_currency": expense.vat_amount,
                         "against": expense.account_paid_to,  # VAT is against the expense's account_paid_to
                         "voucher_type": _("Expenses Entry"),
+=======
+                        "debit": _ep_round(0),
+                        "credit": _ep_round(expense.vat_amount),  # Credit for VAT
+                        "debit_in_account_currency": _ep_round(0),
+                        "credit_in_account_currency": _ep_round(expense.vat_amount),
+                        "against": expense.account_paid_to,  # VAT is against the expense's account_paid_to
+                        "voucher_type": "Expenses Entry",
+>>>>>>> origin/release/v1.0.0
                         "voucher_no": doc.name,
                         "is_opening": "No",
                         "is_advance": "No",
@@ -315,7 +441,11 @@ def delete_gl_entries(doc, method):
     # Find all related GL Entries for this voucher type and number
     _delete_gl_entries("Expenses Entry", doc.name)
     
+<<<<<<< HEAD
     doc.ignore_linked_doctypes = ("Gl Entry")
+=======
+    doc.ignore_linked_doctypes = ("GL Entry",)
+>>>>>>> origin/release/v1.0.0
     
     logger.info("Ignoring the gl entries")
     # Optionally log or notify about the deletion
@@ -424,3 +554,123 @@ def find_miscalculated_amounts():
                 break  # No need to check further rows if one is already miscalculated
 
     return miscalculated_entries
+<<<<<<< HEAD
+=======
+
+def _ep_validate_leaf(doc):
+    s = _ep_get_settings()
+    if int(getattr(s, "only_leaf_accounts", 0)):
+        if getattr(doc, "account_paid_from", None):
+            if frappe.db.get_value("Account", doc.account_paid_from, "is_group"):
+                frappe.throw(_("Account Paid From must be a leaf account."))
+        for d in getattr(doc, "expenses", []) or []:
+            if d.account_paid_to and frappe.db.get_value("Account", d.account_paid_to, "is_group"):
+                frappe.throw(_("Row {0}: Account must be a leaf account.").format(d.idx))
+    if int(getattr(s, "only_leaf_cost_centers", 0)):
+        if getattr(doc, "default_cost_center", None):
+            if frappe.db.get_value("Cost Center", doc.default_cost_center, "is_group"):
+                frappe.throw(_("Default Cost Center must be a leaf node."))
+        for d in getattr(doc, "expenses", []) or []:
+            if d.cost_center and frappe.db.get_value("Cost Center", d.cost_center, "is_group"):
+                frappe.throw(_("Row {0}: Cost Center must be a leaf node.").format(d.idx))
+
+def _ep_build_vat_gl_entries(doc, expense, vat_template_doc, settings, is_cancellation=False):
+    gls = []
+    taxes = (vat_template_doc.taxes or []) if vat_template_doc else []
+    if not taxes:
+        return gls
+    vat_cc = (expense.cost_center if getattr(settings, "vat_use_row_cc", 1) else None)              or (doc.default_cost_center if getattr(settings, "fallback_header_cc", 1) else None)              or ""
+    allow_multi = int(getattr(settings, "allow_multi_tax_per_row", 0) or 0)
+    if allow_multi and len(taxes) > 1:
+        rates = [abs(getattr(t, "rate", 0) or 0) for t in taxes]
+        total_rate = sum(rates) or 0
+        if total_rate > 0:
+            for t, r in zip(taxes, rates):
+                part = (expense.vat_amount or 0) * (r / total_rate)
+                gls.append({
+                    "doctype": "GL Entry",
+                    "posting_date": doc.posting_date,
+                    "account": t.account_head,
+                    "cost_center": vat_cc,
+                    "debit": _ep_round(0 if is_cancellation else part),
+                    "credit": _ep_round(part if is_cancellation else 0),
+                    "debit_in_account_currency": _ep_round(0 if is_cancellation else part),
+                    "credit_in_account_currency": _ep_round(part if is_cancellation else 0),
+                    "against": expense.account_paid_to,
+                    "voucher_type": "Expenses Entry",
+                    "voucher_no": doc.name,
+                    "is_opening": "No",
+                    "is_advance": "No",
+                    "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
+                    "company": doc.company,
+                })
+            return gls
+    # fallback single
+    vat_account = taxes[0].account_head
+    amount = expense.vat_amount or 0
+    gls.append({
+        "doctype": "GL Entry",
+        "posting_date": doc.posting_date,
+        "account": vat_account,
+        "cost_center": vat_cc,
+        "debit": _ep_round(0 if is_cancellation else amount),
+        "credit": _ep_round(amount if is_cancellation else 0),
+        "debit_in_account_currency": _ep_round(0 if is_cancellation else amount),
+        "credit_in_account_currency": _ep_round(amount if is_cancellation else 0),
+        "against": expense.account_paid_to,
+        "voucher_type": "Expenses Entry",
+        "voucher_no": doc.name,
+        "is_opening": "No",
+        "is_advance": "No",
+        "fiscal_year": frappe.defaults.get_user_default("fiscal_year"),
+        "company": doc.company,
+    })
+    return gls
+
+@frappe.whitelist()
+def simulate_gl_entries(doc):
+    if isinstance(doc, str):
+        doc = frappe.parse_json(doc)
+    doc = frappe._dict(doc)
+    settings = _ep_get_settings()
+    gl = []
+    def push(account, debit=0, credit=0, cost_center=None, project=None, remarks=None):
+        gl.append({
+            "account": account,
+            "debit": _ep_round(debit),
+            "credit": _ep_round(credit),
+            "cost_center": cost_center or "",
+            "project": project or "",
+            "remarks": remarks or ""
+        })
+    if getattr(doc, "account_paid_from", None):
+        cc = (doc.default_cost_center if getattr(settings, "enforce_header_cc_credit", 1) else "")
+        paid_to_accounts = ", ".join([d.get("account_paid_to") for d in doc.get("expenses", []) if d.get("account_paid_to")])
+        push(doc.account_paid_from, debit=0, credit=doc.paid_amount, cost_center=cc, remarks=paid_to_accounts)
+    for row in doc.get("expenses", []) or []:
+        row = frappe._dict(row)
+        cc = (row.cost_center if getattr(settings, "enforce_row_cc_debit", 1) else doc.default_cost_center) or doc.default_cost_center
+        push(row.account_paid_to, debit=row.amount_without_vat, credit=0, cost_center=cc, project=row.get("project"))
+        if row.get("vat_template") and (row.get("vat_amount") or 0) > 0:
+            try:
+                vt = frappe.get_doc("Purchase Taxes and Charges Template", row.vat_template)
+            except Exception:
+                vt = None
+            allow_multi = int(getattr(settings, "allow_multi_tax_per_row", 0) or 0)
+            cc_vat = (row.cost_center if getattr(settings, "vat_use_row_cc", 1) else None) or (doc.default_cost_center if getattr(settings, "fallback_header_cc", 1) else None)
+            taxes = (vt.taxes or []) if vt else []
+            if allow_multi and len(taxes) > 1:
+                rates = [abs(getattr(t, "rate", 0) or 0) for t in taxes]
+                tr = sum(rates) or 0
+                if tr > 0:
+                    for t, r in zip(taxes, rates):
+                        part = (row.vat_amount or 0) * (r / tr)
+                        push(t.account_head if getattr(t, "account_head", None) else "(VAT)", debit=part, credit=0, cost_center=cc_vat)
+                    continue
+            # fallback single
+            vat_account = taxes[0].account_head if taxes else "(VAT)"
+            push(vat_account, debit=row.vat_amount, credit=0, cost_center=cc_vat)
+    total_debit = _ep_round(sum(x["debit"] for x in gl))
+    total_credit = _ep_round(sum(x["credit"] for x in gl))
+    return {"rows": gl, "total_debit": total_debit, "total_credit": total_credit, "balanced": abs(total_debit - total_credit) < (10 ** -(_GL_PREC))}
+>>>>>>> origin/release/v1.0.0

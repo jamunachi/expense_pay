@@ -1,0 +1,20 @@
+{
+ "is_standard": "Yes",
+ "report_type": "Script Report",
+ "add_total_row": 1,
+ "apply_user_permissions": 1,
+ "disabled": 0,
+ "prepared_report": 0,
+ "ref_doctype": "GL Entry",
+ "letter_head": 0,
+ "columns": [],
+ "roles": [
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Accounts Manager"
+  }
+ ],
+ "report_name": "Expense VAT Ledger"
+}
